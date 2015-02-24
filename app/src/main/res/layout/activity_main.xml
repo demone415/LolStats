@@ -10,27 +10,17 @@
         android:layout_height="wrap_content"
         android:text="@string/getData"
         android:id="@+id/button"
-        android:layout_marginTop="45dp"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/String"
-        android:linksClickable="false"
-        android:visibility="visible"
-        android:text="Sample text"
-        android:layout_centerVertical="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="54dp" />
 
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/viewData"
+        android:text="@string/parseData"
         android:id="@+id/button2"
-        android:layout_below="@+id/button"
+        android:layout_above="@+id/button"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="45dp" />
+        android:layout_marginBottom="47dp" />
 
 </RelativeLayout>

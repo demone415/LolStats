@@ -9,13 +9,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import org.apache.http.util.ByteArrayBuffer;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.io.BufferedInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,20 +34,19 @@ public class MainActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        TextView text = (TextView) findViewById(R.id.String);
-        Button button = (Button) findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        Button getStatusButton = (Button) findViewById(R.id.button);
+        getStatusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new DownloadFromUrl().execute("http://status.leagueoflegends.com/shards/ru");
             }
         });
 
-        Button viewJ = (Button) findViewById(R.id.button2);
-        viewJ.setOnClickListener(new View.OnClickListener() {
+        Button parseStatusButton = (Button) findViewById(R.id.button2);
+        parseStatusButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                getString();
+        public  void  onClick(View v) {
+                jsonGetStatus();
             }
         });
     }
@@ -76,16 +74,7 @@ public class MainActivity extends Activity {
     }
     // "http://status.leagueoflegends.com/shards/ru"
 
-    public void getString() {
-        TextView text = (TextView) findViewById(R.id.String);
-        text.setText(str);
-    /*
-      Reader reader = null;
-      reader = new InputStreamReader(is, "UTF-8");
-      char[] buffer = new char[10000];
-      reader.read(buffer);
-      str = new String(buffer); */
-    }
+
 
     public class DownloadFromUrl extends AsyncTask<String, Void, Void> {
 
@@ -100,56 +89,26 @@ public class MainActivity extends Activity {
             });
         }
 
-
         public void download(String imageURL) {
             try {
                 URL url = new URL(imageURL);
-                // File file = new File("Statuss.json");
-
-                //File file = File.createTempFile("txt", ".json");
-
-
                 URLConnection ucon = url.openConnection();
-
                 InputStream is = ucon.getInputStream();
-              //  BufferedInputStream bis = new BufferedInputStream(is);
-
-            /*    ByteArrayBuffer baf = new ByteArrayBuffer(50);
-                int current = 0;
-                while ((current = bis.read()) != -1) {
-                    baf.append((byte) current);
-                }
-
-                */
                 Reader reader = null;
                 reader = new InputStreamReader(is, "UTF-8");
                 char[] buffer = new char[10000];
                 reader.read(buffer);
                 str = new String(buffer);
-
                 Log.d("DownloadFromUrl","Before writing: " + str);
-
                 FileOutputStream fOut = openFileOutput("status.json",
                         MODE_WORLD_READABLE);
                 OutputStreamWriter osw = new OutputStreamWriter(fOut);
-
-                // Write the string to the file
                 osw.write(str);
                 osw.flush();
                 osw.close();
-
-                Log.d("DownloadFromUrl","After writing: " + str);
-
-
-
-
-             /* FileOutputStream fos = new FileOutputStream(file);
-              fos.write(baf.toByteArray());
-              fos.close(); */
+               // Log.d("DownloadFromUrl","After writing: " + str);
                 Log.d("DownloadFromUrl", "download completed");
                 DownloadCompletedToast();
-
-
             } catch (IOException e) {
                 Log.d("DownloadFromUrl", "Error: " + e);
             }
@@ -158,23 +117,92 @@ public class MainActivity extends Activity {
 
         @Override
         protected Void doInBackground(String... urls) {
-
             String urldisplay = urls[0];
             try {
                 download(urldisplay);
-
-
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
             }
-
-
             return null;
         }
 
 
     }
+
+
+
+    public void jsonGetStatus() {
+        /*FileOutputStream fOut;
+        JsonParser jParser = new JsonParser();
+        JsonReader jReader = new JsonReader();
+        Object obj = jParser.parse(str);
+        JSONObject jObg = (JSONObject)obj;*/
+        try {
+            Log.d("String = ",str);
+            JSONObject Jobj = new JSONObject(str);
+
+            JSONArray services = Jobj.getJSONArray("services");
+            JSONObject incidents = services.getJSONObject(1);
+            String incident2 = incidents.toString();
+
+            Log.d("in ","services");
+           // Log.d("incidents2: ",incident2);
+
+            JSONObject IncObj = new JSONObject(incident2);
+            JSONArray inc = IncObj.getJSONArray("incidents");
+            JSONObject incidents2 = inc.getJSONObject(0);
+            String inc2 = incidents2.toString();
+
+            Log.d("in ","incidents");
+
+            JSONObject updObj = new JSONObject(inc2);
+            JSONArray upd = updObj.getJSONArray("updates");
+            JSONObject updates = upd.getJSONObject(0);
+            String updatesReady = updates.toString();
+
+            Log.d("in ","updates" + updatesReady);
+
+
+            JSONObject content1Obj = new JSONObject(updatesReady);
+
+            String content1 = content1Obj.getString("content");
+
+            Log.d("Content1:  ",content1);
+
+
+        } catch (JSONException e) {
+             Log.d("Array", "Error: " + e);
+        }
+        Log.d("Parsing","Complete");
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

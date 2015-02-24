@@ -5,6 +5,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="getData">Get Data</string>
-    <string name="viewData">View Json</string>
+    <string name="parseData">Parse Json</string>
 
 </resources>
