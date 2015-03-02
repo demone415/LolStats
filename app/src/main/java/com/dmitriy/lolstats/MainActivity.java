@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -27,18 +28,23 @@ import java.net.URLConnection;
 
 public class MainActivity extends Activity {
 
+
+    String StatusLink = "http://status.leagueoflegends.com/shards/ru";
+
     String str = "";
-    //private final String PATH = "/data/data/com.dmitriy.lolstats/";
+    String Status = "";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Button getStatusButton = (Button) findViewById(R.id.button);
         getStatusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DownloadFromUrl().execute("http://status.leagueoflegends.com/shards/ru");
+                new DownloadFromUrl().execute(StatusLink);
+                Status = str;
             }
         });
 
@@ -47,7 +53,7 @@ public class MainActivity extends Activity {
             @Override
         public  void  onClick(View v) {
                 jsonGetStatus();
-            }
+        }
         });
     }
 
@@ -75,11 +81,11 @@ public class MainActivity extends Activity {
     // "http://status.leagueoflegends.com/shards/ru"
 
 
-
+    // Downloader class with AsyncTask. Because honeycomb+ request this shit
     public class DownloadFromUrl extends AsyncTask<String, Void, Void> {
 
+        //new Handler to show Toast within background process
         Handler handler = new Handler();
-
         public void DownloadCompletedToast() {
             handler.post(new Runnable() {
                 public void run() {
@@ -89,9 +95,9 @@ public class MainActivity extends Activity {
             });
         }
 
-        public void download(String imageURL) {
+        public void download(String Address) {
             try {
-                URL url = new URL(imageURL);
+                URL url = new URL(Address);
                 URLConnection ucon = url.openConnection();
                 InputStream is = ucon.getInputStream();
                 Reader reader = null;
@@ -100,46 +106,39 @@ public class MainActivity extends Activity {
                 reader.read(buffer);
                 str = new String(buffer);
                 Log.d("DownloadFromUrl","Before writing: " + str);
-                FileOutputStream fOut = openFileOutput("status.json",
+                FileOutputStream fOut = openFileOutput("temp.json",
                         MODE_WORLD_READABLE);
                 OutputStreamWriter osw = new OutputStreamWriter(fOut);
                 osw.write(str);
                 osw.flush();
                 osw.close();
-               // Log.d("DownloadFromUrl","After writing: " + str);
-                Log.d("DownloadFromUrl", "download completed");
+                Log.d("DownloadFromUrl", "Download completed");
+
                 DownloadCompletedToast();
             } catch (IOException e) {
-                Log.d("DownloadFromUrl", "Error: " + e);
+                Log.e("DownloadFromUrl", "Error: " + e);
             }
 
         }
 
         @Override
         protected Void doInBackground(String... urls) {
-            String urldisplay = urls[0];
+            String url = urls[0];
             try {
-                download(urldisplay);
+                download(url);
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
             }
             return null;
         }
-
-
     }
 
 
 
     public void jsonGetStatus() {
-        /*FileOutputStream fOut;
-        JsonParser jParser = new JsonParser();
-        JsonReader jReader = new JsonReader();
-        Object obj = jParser.parse(str);
-        JSONObject jObg = (JSONObject)obj;*/
         try {
-            Log.d("String = ",str);
+            Log.d("String = ",Status);
             JSONObject Jobj = new JSONObject(str);
 
             JSONArray services = Jobj.getJSONArray("services");
@@ -147,7 +146,6 @@ public class MainActivity extends Activity {
             String incident2 = incidents.toString();
 
             Log.d("in ","services");
-           // Log.d("incidents2: ",incident2);
 
             JSONObject IncObj = new JSONObject(incident2);
             JSONArray inc = IncObj.getJSONArray("incidents");
@@ -171,8 +169,13 @@ public class MainActivity extends Activity {
             Log.d("Content1:  ",content1);
 
 
+           TextView text = (TextView) findViewById(R.id.textView);
+           text.setText(content1);
+
         } catch (JSONException e) {
-             Log.d("Array", "Error: " + e);
+            Log.e("Array", "Error: " + e);
+            TextView text = (TextView) findViewById(R.id.textView);
+            text.setText("No messages for now :(");
         }
         Log.d("Parsing","Complete");
 
