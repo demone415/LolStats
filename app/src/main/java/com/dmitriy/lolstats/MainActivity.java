@@ -1,6 +1,7 @@
 package com.dmitriy.lolstats;
 
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,14 +9,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,30 +32,25 @@ public class MainActivity extends Activity {
 
     String str = "";
     String Status = "";
+    boolean DownloadReady = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button getStatusButton = (Button) findViewById(R.id.button);
-        getStatusButton.setOnClickListener(new View.OnClickListener() {
+        new DownloadFromUrl().execute(StatusLink);
+
+        final Handler handler1 = new Handler();
+        handler1.postDelayed(new Runnable() {
             @Override
-            public void onClick(View v) {
-                new DownloadFromUrl().execute(StatusLink);
+            public void run() {
+                // Do something after 5s = 5000ms
                 Status = str;
-            }
-        });
-
-        Button parseStatusButton = (Button) findViewById(R.id.button2);
-        parseStatusButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-        public  void  onClick(View v) {
                 jsonGetStatus();
-        }
-        });
+            }
+        }, 4000);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -97,6 +91,10 @@ public class MainActivity extends Activity {
 
         public void download(String Address) {
             try {
+                ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
+                pgb.setIndeterminate(true);
+                pgb.setVisibility(View.VISIBLE);
+
                 URL url = new URL(Address);
                 URLConnection ucon = url.openConnection();
                 InputStream is = ucon.getInputStream();
@@ -115,8 +113,20 @@ public class MainActivity extends Activity {
                 Log.d("DownloadFromUrl", "Download completed");
 
                 DownloadCompletedToast();
+
             } catch (IOException e) {
                 Log.e("DownloadFromUrl", "Error: " + e);
+
+                ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
+                pgb.setIndeterminate(false);
+                pgb.setVisibility(View.GONE);
+
+                TextView text = (TextView) findViewById(R.id.textView);
+                text.setTextColor(getResources().getColor(R.color.gold_text));
+                text.setVisibility(View.VISIBLE);
+                Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
+                text.setTypeface(face);
+                text.setText("Download Error");
             }
 
         }
@@ -126,9 +136,17 @@ public class MainActivity extends Activity {
             String url = urls[0];
             try {
                 download(url);
+                DownloadReady = true;
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
                 e.printStackTrace();
+
+                TextView text = (TextView) findViewById(R.id.textView);
+                text.setVisibility(View.VISIBLE);
+                text.setTextColor(getResources().getColor(R.color.gold_text));
+                Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
+                text.setTypeface(face);
+                text.setText("Download Error");
             }
             return null;
         }
@@ -139,7 +157,7 @@ public class MainActivity extends Activity {
     public void jsonGetStatus() {
         try {
             Log.d("String = ",Status);
-            JSONObject Jobj = new JSONObject(str);
+            JSONObject Jobj = new JSONObject(Status);
 
             JSONArray services = Jobj.getJSONArray("services");
             JSONObject incidents = services.getJSONObject(1);
@@ -168,16 +186,32 @@ public class MainActivity extends Activity {
 
             Log.d("Content1:  ",content1);
 
+            ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
+            pgb.setIndeterminate(false);
+            pgb.setVisibility(View.GONE);
 
-           TextView text = (TextView) findViewById(R.id.textView);
-           text.setText(content1);
+            TextView text = (TextView) findViewById(R.id.textView);
+            text.setVisibility(View.VISIBLE);
+            text.setTextColor(getResources().getColor(R.color.gold_text));
+            Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
+            text.setTypeface(face);
+            text.setText(content1);
 
         } catch (JSONException e) {
             Log.e("Array", "Error: " + e);
+
+            ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
+            pgb.setIndeterminate(false);
+            pgb.setVisibility(View.GONE);
+
             TextView text = (TextView) findViewById(R.id.textView);
+            text.setVisibility(View.VISIBLE);
+            text.setTextColor(getResources().getColor(R.color.gold_text));
+            Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
+            text.setTypeface(face);
             text.setText("No messages for now :(");
         }
-        Log.d("Parsing","Complete");
+            Log.d("Parsing","Complete");
 
 
 
