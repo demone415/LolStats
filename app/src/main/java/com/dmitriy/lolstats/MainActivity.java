@@ -1,6 +1,7 @@
 package com.dmitriy.lolstats;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,11 +27,11 @@ import java.net.URL;
 import java.net.URLConnection;
 
 
+
 public class MainActivity extends Activity {
 
 
     String StatusLink = "http://status.leagueoflegends.com/shards/ru";
-
     String str = "";
     String Status = "";
     boolean DownloadReady = false;
@@ -49,7 +51,15 @@ public class MainActivity extends Activity {
                 Status = str;
                 jsonGetStatus();
             }
-        }, 4000);
+        }, 5500);
+
+ /*       ImageButton reloadStatus = (ImageButton) findViewById(R.id.imageButton);
+        reloadStatus.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reloadStatusfn();
+            }
+        });*/
     }
 
     @Override
@@ -72,9 +82,6 @@ public class MainActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
-    // "http://status.leagueoflegends.com/shards/ru"
-
-
     // Downloader class with AsyncTask. Because honeycomb+ request this shit
     public class DownloadFromUrl extends AsyncTask<String, Void, Void> {
 
@@ -94,6 +101,11 @@ public class MainActivity extends Activity {
                 ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
                 pgb.setIndeterminate(true);
                 pgb.setVisibility(View.VISIBLE);
+                TextView WaitText = (TextView) findViewById(R.id.WaitText);
+                WaitText.setTextColor(getResources().getColor(R.color.gold_text));
+                Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
+                WaitText.setTypeface(face);
+                WaitText.setVisibility(View.VISIBLE);
 
                 URL url = new URL(Address);
                 URLConnection ucon = url.openConnection();
@@ -103,30 +115,32 @@ public class MainActivity extends Activity {
                 char[] buffer = new char[10000];
                 reader.read(buffer);
                 str = new String(buffer);
-                Log.d("DownloadFromUrl","Before writing: " + str);
+                    Log.d("DownloadFromUrl","Before writing: " + str);
                 FileOutputStream fOut = openFileOutput("temp.json",
                         MODE_WORLD_READABLE);
                 OutputStreamWriter osw = new OutputStreamWriter(fOut);
                 osw.write(str);
                 osw.flush();
                 osw.close();
-                Log.d("DownloadFromUrl", "Download completed");
+                    Log.d("DownloadFromUrl", "Download completed");
 
-                DownloadCompletedToast();
+                //DownloadCompletedToast();
 
             } catch (IOException e) {
-                Log.e("DownloadFromUrl", "Error: " + e);
+                    Log.e("DownloadFromUrl", "Error: " + e);
 
                 ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
-                pgb.setIndeterminate(false);
-                pgb.setVisibility(View.GONE);
+                    pgb.setIndeterminate(false);
+                    pgb.setVisibility(View.GONE);
+                TextView WaitText = (TextView) findViewById(R.id.WaitText);
+                    WaitText.setVisibility(View.GONE);
 
-                TextView text = (TextView) findViewById(R.id.textView);
-                text.setTextColor(getResources().getColor(R.color.gold_text));
-                text.setVisibility(View.VISIBLE);
                 Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
-                text.setTypeface(face);
-                text.setText("Download Error");
+                TextView text = (TextView) findViewById(R.id.Content1);
+                    text.setTextColor(getResources().getColor(R.color.gold_text));
+                    text.setVisibility(View.VISIBLE);
+                    text.setTypeface(face);
+                    text.setText("Download Error");
             }
 
         }
@@ -138,15 +152,21 @@ public class MainActivity extends Activity {
                 download(url);
                 DownloadReady = true;
             } catch (Exception e) {
-                Log.e("Error", e.getMessage());
+                    Log.e("Error", e.getMessage());
                 e.printStackTrace();
 
-                TextView text = (TextView) findViewById(R.id.textView);
-                text.setVisibility(View.VISIBLE);
-                text.setTextColor(getResources().getColor(R.color.gold_text));
+                ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
+                    pgb.setIndeterminate(false); ///
+                    pgb.setVisibility(View.GONE);  ///
+                TextView WaitText = (TextView) findViewById(R.id.WaitText);
+                    WaitText.setVisibility(View.GONE); ///
+
                 Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
-                text.setTypeface(face);
-                text.setText("Download Error");
+                TextView text = (TextView) findViewById(R.id.Content1);
+                    text.setVisibility(View.VISIBLE);
+                    text.setTextColor(getResources().getColor(R.color.gold_text));
+                    text.setTypeface(face);
+                    text.setText("Download Error");
             }
             return null;
         }
@@ -156,62 +176,98 @@ public class MainActivity extends Activity {
 
     public void jsonGetStatus() {
         try {
-            Log.d("String = ",Status);
+                Log.d("String = ",Status);
             JSONObject Jobj = new JSONObject(Status);
 
             JSONArray services = Jobj.getJSONArray("services");
             JSONObject incidents = services.getJSONObject(1);
             String incident2 = incidents.toString();
 
-            Log.d("in ","services");
+                Log.d("in ","services");
 
             JSONObject IncObj = new JSONObject(incident2);
             JSONArray inc = IncObj.getJSONArray("incidents");
             JSONObject incidents2 = inc.getJSONObject(0);
             String inc2 = incidents2.toString();
 
-            Log.d("in ","incidents");
+                Log.d("in ","incidents");
 
             JSONObject updObj = new JSONObject(inc2);
             JSONArray upd = updObj.getJSONArray("updates");
             JSONObject updates = upd.getJSONObject(0);
             String updatesReady = updates.toString();
 
-            Log.d("in ","updates" + updatesReady);
+                Log.d("in ","updates" + updatesReady);
 
 
             JSONObject content1Obj = new JSONObject(updatesReady);
 
             String content1 = content1Obj.getString("content");
 
-            Log.d("Content1:  ",content1);
+                Log.d("Content1:  ",content1);
+
+            /*getting second news message*/
+
+            JSONObject incedents2 = inc.getJSONObject(1);
+            String inc3 = incedents2.toString();
+
+                Log.d("in ","incidents_2");
+
+            JSONObject updObj2 = new JSONObject(inc3);
+            JSONArray upd2 = updObj2.getJSONArray("updates");
+            JSONObject updates_2 = upd2.getJSONObject(0);
+            String updatesReady2 = updates_2.toString();
+
+                Log.d("in ","updates_2" + updatesReady2);
+
+            JSONObject content2Obj = new JSONObject(updatesReady2);
+
+            String content_2 = content2Obj.getString("content");
+
+                Log.d("Content2:  ",content_2);
+
+
+            /*closing waiting message*/
 
             ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
-            pgb.setIndeterminate(false);
-            pgb.setVisibility(View.GONE);
+                pgb.setIndeterminate(false);
+                pgb.setVisibility(View.GONE);
+            TextView WaitText = (TextView) findViewById(R.id.WaitText);
+                WaitText.setVisibility(View.GONE);
 
-            TextView text = (TextView) findViewById(R.id.textView);
-            text.setVisibility(View.VISIBLE);
-            text.setTextColor(getResources().getColor(R.color.gold_text));
+            /*filling Content1 TextView with a first news message*/
+
             Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
-            text.setTypeface(face);
-            text.setText(content1);
+            TextView text = (TextView) findViewById(R.id.Content1);
+                text.setVisibility(View.VISIBLE);
+                text.setTextColor(getResources().getColor(R.color.gold_text));
+                text.setTypeface(face);
+                text.setText(content1);
+
+            /* Content1 TextView with a second news message*/
+
+                text.append(" \n \n");
+                text.append(content_2);
+
+            //TODO Divide jsonGetStatus into 3 functions. 1: GetFirstMessage; 2: GetSecondMessage; 3: GetOnline (new);
 
         } catch (JSONException e) {
-            Log.e("Array", "Error: " + e);
+                Log.e("Array", "Error: " + e);
 
             ProgressBar pgb = (ProgressBar) findViewById(R.id.progressBar);
-            pgb.setIndeterminate(false);
-            pgb.setVisibility(View.GONE);
+                pgb.setIndeterminate(false);
+                pgb.setVisibility(View.GONE);
+            TextView WaitText = (TextView) findViewById(R.id.WaitText);
+                WaitText.setVisibility(View.GONE);
 
-            TextView text = (TextView) findViewById(R.id.textView);
-            text.setVisibility(View.VISIBLE);
-            text.setTextColor(getResources().getColor(R.color.gold_text));
             Typeface face = Typeface.createFromAsset(getAssets(),"fonts/BeaufortforLOL-Medium.ttf");
-            text.setTypeface(face);
-            text.setText("No messages for now :(");
+            TextView text = (TextView) findViewById(R.id.Content1);
+                text.setVisibility(View.VISIBLE);
+                text.setTextColor(getResources().getColor(R.color.gold_text));
+                text.setTypeface(face);
+                text.setText("No messages for now :(");
         }
-            Log.d("Parsing","Complete");
+                Log.d("Parsing","Complete");
 
 
 
